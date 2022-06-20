@@ -48,3 +48,23 @@ The folder `/tests` has some small programs that make some requests to a TEE, to
     make all
     ./print_tee_id /dev/tee0
 
+# Developing on VSCode
+If you're working on this module with VSCode you can add the following to your `c_cpp_properties.json`
+file so that you can get working autocompletition. You'll probably have to change the
+`linux-headers-5.13.0-51` part to the one you have:
+
+
+        "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/include",
+                "/usr/src/linux-headers-5.13.0-51/include/",
+                "/usr/src/linux-headers-5.13.0-51-generic/include/",
+                "/usr/src/linux-headers-5.13.0-51-generic/arch/x86/include",
+                "/usr/src/linux-headers-5.13.0-51-generic/arch/x86/include/uapi",
+                "/usr/src/linux-headers-5.13.0-51-generic/arch/x86/include/generated"
+        ],
+        "defines": [
+                "__GNUC__",
+                "__KERNEL__",
+                "MODULE"
+        ],
