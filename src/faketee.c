@@ -38,13 +38,22 @@ static int faketee_open_session(struct tee_context *ctx,
 				struct tee_param *param)
 {
 	pr_info("[fake_tee]: faketee_open_session was called\n");
-	return -4321;
+
+	pr_info("[fake_tee]: requested uuid is '%x%x%x%x-%x%x-%x%x-%x%x-%x%x%x%x%x%x\n",
+		arg->uuid[0], arg->uuid[1], arg->uuid[2], arg->uuid[3],
+		arg->uuid[4], arg->uuid[5], arg->uuid[6], arg->uuid[7],
+		arg->uuid[8], arg->uuid[9], arg->uuid[10], arg->uuid[11],
+		arg->uuid[12], arg->uuid[13], arg->uuid[14], arg->uuid[15]);
+	pr_info("[fake_tee]: params number: %u\n", arg->num_params);
+	arg->session = 1234;
+	arg->ret = 4321;
+	return 0;
 }
 
 static int faketee_close_session(struct tee_context *ctx, u32 session)
 {
 	pr_info("[fake_tee]: faketee_close_session\n");
-	return -4321;
+	return 0;
 }
 
 static int faketee_invoke_func(struct tee_context *ctx,
