@@ -1,4 +1,4 @@
-#include <linux/kernel.h> 
+#include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/crash_dump.h>
 #include <linux/errno.h>
@@ -12,7 +12,8 @@
 #include <linux/workqueue.h>
 #include <linux/platform_device.h>
 
-static void faketee_get_version(struct tee_device* tee_device, struct tee_ioctl_version_data* ver)
+static void faketee_get_version(struct tee_device *tee_device,
+				struct tee_ioctl_version_data *ver)
 {
 	pr_info("[fake_tee]: Requested version\n");
 	ver->impl_id = 1234;
@@ -23,7 +24,7 @@ static void faketee_get_version(struct tee_device* tee_device, struct tee_ioctl_
 static int faketee_open(struct tee_context *ctx)
 {
 	pr_info("[fake_tee]: faketee_open was called\n");
-	
+
 	return 0;
 }
 
@@ -32,11 +33,9 @@ static void faketee_release(struct tee_context *ctx)
 	pr_info("[fake_tee]: faketee_release was called\n");
 }
 
-static int faketee_open_session
-(
-	struct tee_context *ctx, struct tee_ioctl_open_session_arg *arg,
-	struct tee_param *param
-)
+static int faketee_open_session(struct tee_context *ctx,
+				struct tee_ioctl_open_session_arg *arg,
+				struct tee_param *param)
 {
 	pr_info("[fake_tee]: faketee_open_session was called\n");
 	return -4321;
@@ -48,18 +47,16 @@ static int faketee_close_session(struct tee_context *ctx, u32 session)
 	return -4321;
 }
 
-static int faketee_invoke_func
-(
-	struct tee_context *ctx,
-	struct tee_ioctl_invoke_arg *arg,
-	struct tee_param *param
-)
+static int faketee_invoke_func(struct tee_context *ctx,
+			       struct tee_ioctl_invoke_arg *arg,
+			       struct tee_param *param)
 {
 	pr_info("[fake_tee]: faketee_invoke_func was called\n");
 	return -4321;
 }
 
-static int faketee_cancel_req(struct tee_context *ctx, u32 cancel_id, u32 session)
+static int faketee_cancel_req(struct tee_context *ctx, u32 cancel_id,
+			      u32 session)
 {
 	pr_info("[fake_tee]: faketee_cancel_req was called\n");
 	return -4321;
@@ -75,8 +72,8 @@ static const struct tee_driver_ops tee_ops = {
 	.cancel_req = faketee_cancel_req,
 };
 
-static int faketee_pool_alloc(struct tee_shm_pool_mgr *pool, struct tee_shm *shm,
-			 size_t size)
+static int faketee_pool_alloc(struct tee_shm_pool_mgr *pool,
+			      struct tee_shm *shm, size_t size)
 {
 	unsigned int order = get_order(size);
 	unsigned long va;
@@ -90,13 +87,14 @@ static int faketee_pool_alloc(struct tee_shm_pool_mgr *pool, struct tee_shm *shm
 		return -ENOMEM;
 
 	shm->kaddr = (void *)va;
-	shm->paddr = virt_to_phys((void*) va);
+	shm->paddr = virt_to_phys((void *)va);
 	shm->size = PAGE_SIZE << order;
 
 	return 0;
 }
 
-static void faketee_pool_free(struct tee_shm_pool_mgr *pool, struct tee_shm *shm)
+static void faketee_pool_free(struct tee_shm_pool_mgr *pool,
+			      struct tee_shm *shm)
 {
 	free_pages((unsigned long)shm->kaddr, get_order(shm->size));
 	shm->kaddr = NULL;
@@ -165,7 +163,7 @@ static int faketee_driver_init(void)
 	int rc;
 	struct tee_shm_pool *pool;
 
-    pr_info("Initializing Fake-TEE\n");
+	pr_info("Initializing Fake-TEE\n");
 
 	pr_info("Allocating the shared memory pool\n");
 	pool = faketee_alloc_shm_pool();
@@ -174,10 +172,11 @@ static int faketee_driver_init(void)
 		return -ENOMEM;
 	}
 
-    tee_device = tee_device_alloc(&tee_desc, NULL, pool, NULL);
+	tee_device = tee_device_alloc(&tee_desc, NULL, pool, NULL);
 	if (IS_ERR(tee_device)) {
-        pr_err("fatal while allocating the device. err: %ld\n", PTR_ERR(tee_device));
-        return PTR_ERR(tee_device);
+		pr_err("fatal while allocating the device. err: %ld\n",
+		       PTR_ERR(tee_device));
+		return PTR_ERR(tee_device);
 	}
 
 	rc = tee_device_register(tee_device);
@@ -188,11 +187,10 @@ static int faketee_driver_init(void)
 }
 module_init(faketee_driver_init);
 
-
-void faketee_driver_cleanup(void) 
-{ 
+void faketee_driver_cleanup(void)
+{
 	pr_info("[fake_tee]: removing the fake tee");
-    tee_device_unregister(tee_device);
+	tee_device_unregister(tee_device);
 }
 module_exit(faketee_driver_cleanup);
 
