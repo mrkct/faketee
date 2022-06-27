@@ -8,5 +8,8 @@ PROGRAMS = $(SOURCES:.c=)
 
 all: $(PROGRAMS)
 
+clean:
+	rm -f $(PROGRAMS)
+
 %: %.c
 	$(CC) $(CFLAGS) $< -o $@
