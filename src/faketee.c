@@ -61,7 +61,22 @@ static int faketee_invoke_func(struct tee_context *ctx,
 			       struct tee_param *param)
 {
 	pr_info("[fake_tee]: faketee_invoke_func was called\n");
-	return -4321;
+	pr_info("[fake_tee]: session_id is %u, function is %u\n", arg->session, arg->func);
+	switch (arg->func) {
+	case 1234:
+		pr_info("[fake_tee/increment_number]: called\n");
+		pr_info("[fake_tee/increment_number]: a=%llu b=%llu c=%llu\n", param->u.value.a, param->u.value.b, param->u.value.c);
+		arg->ret = 0;
+		arg->ret_origin = 
+		param->u.value.a++;
+		param->u.value.b++;
+		param->u.value.c++;
+
+		return 0;
+	default:
+		pr_info("[fake_tee]: no function is defined with that id\n");
+		return ENOTSUPP;
+	}
 }
 
 static int faketee_cancel_req(struct tee_context *ctx, u32 cancel_id,
