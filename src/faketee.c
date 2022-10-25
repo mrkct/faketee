@@ -47,6 +47,8 @@ static int faketee_open_session(struct tee_context *ctx,
 	pr_info("[fake_tee]: params number: %u\n", arg->num_params);
 	arg->session = 1234;
 	arg->ret = 4321;
+	arg->ret_origin = 2;
+	
 	return 0;
 }
 
@@ -60,6 +62,9 @@ static int faketee_invoke_func(struct tee_context *ctx,
 			       struct tee_ioctl_invoke_arg *arg,
 			       struct tee_param *param)
 {
+	int i, j;
+	uint8_t *buf;
+
 	pr_info("[fake_tee]: faketee_invoke_func was called\n");
 	pr_info("[fake_tee]: session_id is %u, function is %u\n", arg->session, arg->func);
 	switch (arg->func) {
@@ -67,12 +72,42 @@ static int faketee_invoke_func(struct tee_context *ctx,
 		pr_info("[fake_tee/increment_number]: called\n");
 		pr_info("[fake_tee/increment_number]: a=%llu b=%llu c=%llu\n", param->u.value.a, param->u.value.b, param->u.value.c);
 		arg->ret = 0;
-		arg->ret_origin = 
+		arg->ret_origin = 2;
 		param->u.value.a++;
 		param->u.value.b++;
 		param->u.value.c++;
 
 		return 0;
+	case 1235:
+		pr_info("[fake_tee/memref-test]: called\n");
+		arg->ret = 0;
+		arg->ret_origin = 2;
+
+		for (i = 0; i < arg->num_params; i++) {
+			#define IS_MEMREF(a) (a == TEE_IOCTL_PARAM_ATTR_TYPE_MEMREF_OUTPUT || a == TEE_IOCTL_PARAM_ATTR_TYPE_MEMREF_INOUT || a == TEE_IOCTL_PARAM_ATTR_TYPE_MEMREF_INPUT)
+			if (!IS_MEMREF(param->attr)) {
+				pr_info("[fake_tee/memref-test]: arg %d is not a memref\n", i);
+				continue;
+			}
+			buf = &((uint8_t*) param[i].u.memref.shm->kaddr)[param[i].u.memref.shm_offs];
+			pr_info("[fake_tee/memref-test]: arg %d has ptr %px and id: %d\n", i, (void*) buf, param[i].u.memref.shm->id);
+			if (param->attr == TEE_IOCTL_PARAM_ATTR_TYPE_MEMREF_INPUT) {
+				pr_info("[fake_tee/memref-test]: arg %d is memref INPUT\n", i);
+				for (j = 0; j < param[i].u.memref.size; j++)
+					pr_info("0x%X ", buf[j]);
+			} else if (param->attr == TEE_IOCTL_PARAM_ATTR_TYPE_MEMREF_INOUT) {
+				pr_info("[fake_tee/memref-test]: arg %d is memref INOUT\n", i);
+				for (j = 0; j < param[i].u.memref.size; j++)
+					buf[j]++;
+			} else if (param->attr == TEE_IOCTL_PARAM_ATTR_TYPE_MEMREF_OUTPUT) {
+				pr_info("[fake_tee/memref-test]: arg %d is memref OUTPUT\n", i);
+				for (j = 0; j < param[i].u.memref.size; j++)
+					buf[j] = j;
+			}
+			unreachable();
+		}
+		return 0;
+		break;
 	default:
 		pr_info("[fake_tee]: no function is defined with that id\n");
 		return ENOTSUPP;
